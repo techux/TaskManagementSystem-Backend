@@ -1,11 +1,14 @@
 const express = require('express');
-const dotenv = require('dotenv');
-dotenv.config();
+require("dotenv").config();
+const cors = require("cors");
+// const cookieParser = require('cookie-parser')
+const dbConnect = require("./utils/dbConnect");
 
 const PORT = process.env.PORT || 8080;
 
 const app = express();
 
+app.use(cors())
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 
@@ -24,5 +27,6 @@ app.all("*", (req, res) => {
 })
 
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`[INFO] Server is running on port ${PORT}`);
+    dbConnect();
 })
