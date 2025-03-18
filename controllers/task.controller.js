@@ -3,11 +3,31 @@ const Task = require("../models/task.model");
 
 const allTaskController = async (req, res) => {
     try {
-        const result = await Task.find({user: req.user.id}).sort({ createdAt: -1 });
+        let { page = 1, limit = 10 , priority, status} = req.query;
+        let skip = (page - 1) * limit;
+
+        if (page < 1 || limit < 1) {
+            page = 1;
+            limit = 10;
+        }
+
+        const totalTasks = await Task.countDocuments({ user: req.user.id});
+
+        let query = {}
+        query.user = req.user.id
+        if(priority) query.priority = priority;
+        if(status) query.status = status;
+    
+
+        const result = await Task.find(query).select("-user").sort({ createdAt: -1 }).skip(skip).limit(limit);
 
         return res.status(200).json({
             status: "ok",
-            data: result
+            data: result,
+            page,
+            limit,
+            totalTasks,
+            totalPages: Math.ceil(totalTasks / limit),
         })
     } catch (error) {
         console.error(`Error on allTaskController ${error.stack || error.message}`)
@@ -30,6 +50,20 @@ const createTaskController = async (req, res) => {
             })
         }
 
+        if (!["pending", "completed", undefined].includes(status)){
+            return res.status(400).json({
+                status: "error",
+                message: "Invalid status: must be pending or completed"
+            })
+        }
+
+        if (!["low", "medium", "high", undefined].includes(priority)){
+            return res.status(400).json({
+                status: "error",
+                message: "Invalid priority: must be low, medium or high"
+            })
+        }
+
         const result = await Task.create({
             user: req.user.id,
             title,
@@ -40,6 +74,7 @@ const createTaskController = async (req, res) => {
 
         return res.status(201).json({
             status: "ok",
+            message: "Task Added Successfully", 
             data: result
         })
 
@@ -95,7 +130,7 @@ const updateTaskController = async (req, res) => {
             {
                 new: true
             }
-        )
+        ).select("-user")
 
         return res.status(200).json({
             status: "ok",
@@ -132,9 +167,10 @@ const deletetaskController = async (req, res) => {
             })
         }
 
-        const result = await Task.findByIdAndDelete(taskId)
+        const result = await Task.findByIdAndDelete(taskId).select("-user");
         return res.status(200).json({
             status: "ok",
+            message: "Task Deleted Successfully",
             data: result
         })
     } catch (error) {

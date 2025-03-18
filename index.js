@@ -3,8 +3,10 @@ require("dotenv").config();
 const cors = require("cors");
 
 const dbConnect = require("./utils/dbConnect");
+const auth = require("./middlewares/auth.middleware");
 
 const authRoute = require("./routes/auth.route");
+const taskRoute = require("./routes/task.route");
 
 const PORT = process.env.PORT || 8080;
 
@@ -22,6 +24,7 @@ app.get("/", (req, res) => {
 })
 
 app.use("/auth", authRoute);
+app.use("/task", auth, taskRoute);
 
 
 app.all("*", (req, res) => {
