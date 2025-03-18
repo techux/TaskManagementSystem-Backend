@@ -32,13 +32,20 @@ const setCache = async (key, value, ttl = null) => {
     }
 };
 
-const delCache = async (key) => {
+const delCache = async (pattern) => {
     try {
-        await client.del(key);
+        const keys = [];
+        for await (const key of client.scanIterator({ MATCH: pattern })) {
+            keys.push(key);
+        }
+        if (keys.length > 0) {
+            await client.del(keys);
+        }
     } catch (err) {
         console.error("[ERROR] Redis Delete Error:", err);
     }
 };
+
 
 module.exports = {
     getCache,
