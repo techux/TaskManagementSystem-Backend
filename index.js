@@ -1,8 +1,10 @@
 const express = require('express');
 require("dotenv").config();
 const cors = require("cors");
-// const cookieParser = require('cookie-parser')
+
 const dbConnect = require("./utils/dbConnect");
+
+const authRoute = require("./routes/auth.route");
 
 const PORT = process.env.PORT || 8080;
 
@@ -18,6 +20,9 @@ app.get("/", (req, res) => {
         message: "Server working properly"
     })
 })
+
+app.use("/auth", authRoute);
+
 
 app.all("*", (req, res) => {
     return res.status(404).json({
