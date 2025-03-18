@@ -1,5 +1,6 @@
 const mongoose= require("mongoose");
 const Task = require("../models/task.model");
+const { getCache, setCache, delCache } = require("../utils/redis.util");
 
 const allTaskController = async (req, res) => {
     try {
@@ -11,6 +12,14 @@ const allTaskController = async (req, res) => {
             limit = 10;
         }
 
+        // Redis here, agar cache me hai, to yahi se return karo
+        const cacheKey = `tasks:${req.user.id}:${page}:${limit}:${priority || "all"}:${status || "all"}`;
+        const cachedData = await getCache(cacheKey);
+        if (cachedData) {
+            return res.status(200).json(cachedData);
+        }
+        // =====================================================        
+
         const totalTasks = await Task.countDocuments({ user: req.user.id});
 
         let query = {}
@@ -21,14 +30,18 @@ const allTaskController = async (req, res) => {
 
         const result = await Task.find(query).select("-user").sort({ createdAt: -1 }).skip(skip).limit(limit);
 
-        return res.status(200).json({
+        const responseData = {
             status: "ok",
             data: result,
             page,
             limit,
             totalTasks,
             totalPages: Math.ceil(totalTasks / limit),
-        })
+        }
+
+        await setCache(cacheKey, responseData);
+        return res.status(200).json(responseData);
+
     } catch (error) {
         console.error(`Error on allTaskController ${error.stack || error.message}`)
         res.status(500).json({
@@ -71,6 +84,9 @@ const createTaskController = async (req, res) => {
             status,
             priority
         })
+
+        // jab naya task bane, cache clear karo
+        await delCache(`tasks:${req.user.id}:*`);
 
         return res.status(201).json({
             status: "ok",
@@ -132,6 +148,9 @@ const updateTaskController = async (req, res) => {
             }
         ).select("-user")
 
+        // task update to clear cache
+        await delCache(`tasks:${req.user.id}:*`);
+
         return res.status(200).json({
             status: "ok",
             message: "Task Updated Successfully",
@@ -168,6 +187,10 @@ const deletetaskController = async (req, res) => {
         }
 
         const result = await Task.findByIdAndDelete(taskId).select("-user");
+
+        // task delete hua to clear chache
+        await delCache(`tasks:${req.user.id}:*`);
+
         return res.status(200).json({
             status: "ok",
             message: "Task Deleted Successfully",
