@@ -3,6 +3,7 @@ This is a simple task management system which helps to keep track of Tasks with 
 This system use Redis caching to ensure faster response and reduce Database queries and response time.
 
 - **Hosted url**: [https://task-management-system-backend-devesh.vercel.app/](https://task-management-system-backend-devesh.vercel.app/)
+- **Documentation**: [https://documenter.getpostman.com/view/26661759/2sAYkGKJum](https://documenter.getpostman.com/view/26661759/2sAYkGKJum)
 
 ## Tech Used
 - Node.Js
@@ -21,7 +22,7 @@ This system use Redis caching to ensure faster response and reduce Database quer
 - Redis caching for faster task retrival and lower Database read operation
 
 ## API Documentation
-[Documentation On Postman](https://www.postman.com/satellite-astronomer-50638594/assingments/documentation/5c95qn3/task-management-system-backend)
+[Documentation On Postman](https://documenter.getpostman.com/view/26661759/2sAYkGKJum)
 
 ## Other
 - Developed by: Devesh Singh
